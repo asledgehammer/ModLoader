@@ -21,8 +21,8 @@
     if c_mod_id ~= 'mod_loader' then return end
 
     -- Send the main client-side code. 
-    if command == 'request_mod_loader_client_code' then 
-      sendServerCommand(player, 'mod_loader', 'receive_mod_loader_client_code', {code = b})
+    if command == '_' then 
+      sendServerCommand(player, 'mod_loader', '__', {code = b})
     -- Handle request for a mod's code.
     elseif command == 'request_mod_code' then
       local mod_id = args.mod_id
@@ -60,8 +60,6 @@
       print('ModLoader: Unknown command: '..tostring(command))
     end       
   end)
-
-  _G['MOD_LOADER_READY'] = true
-  triggerEvent('OnModLoaderReady', true)
+  triggerEvent('OnModLoaderReady')
   print('ModLoader: Server fully initialized.')
 end)()

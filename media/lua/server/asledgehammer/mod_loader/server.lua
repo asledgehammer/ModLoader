@@ -1,7 +1,6 @@
 if isServer() then
   (function()
-    _G['MOD_LOADER_READY'] = false
-    triggerEvent('OnModLoaderReady', false)
+    LuaEventManager.AddEvent('OnModLoaderReady')
     local b = function(c)
       local e = getFileReader(c, false)
       if e == nil then return nil end
@@ -17,18 +16,9 @@ if isServer() then
       e:close()
       return f 
     end
-    local a = 'mod_loader/mods/mod_loader/server/server.lua'
-    local e = b(a)
-    if e == nil then 
-      print('ModLoader: File not found: '..tostring(a))
-      return 
-    end
-    if not pcall(
-      function() 
-        local g = loadstring(e, 'server-2')
-        g() 
-      end) then
-      print('ModLoader: Failed to load file: '..tostring(a))
-    end
+    local a='mod_loader/mods/mod_loader/server/server.lua'
+    local e=b(a)
+    if e==nil then return end
+    pcall(function()local g=loadstring(e);g()end)
   end)()
 end
