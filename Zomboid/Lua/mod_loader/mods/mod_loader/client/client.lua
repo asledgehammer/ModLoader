@@ -22,7 +22,7 @@
       end
     end
   end)
-  _G['loadMod'] = function(mod_id, files)
+  _G['loadModFiles'] = function(mod_id, files)
     sendClientCommand('mod_loader', 'request_mod_code', { mod_id = mod_id, files = files})
   end
   _G['MOD_LOADER_READY'] = true
