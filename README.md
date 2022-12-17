@@ -1,7 +1,7 @@
 # ModLoader
 
-Steam Workshop ID: 2903176233
-Mod ID: mod_loader
+**Steam Workshop ID**: 2903176233 <br>
+**Mod ID**: mod_loader
 
 - Merge the contents of the `Zomboid` folder in the ``../Zomboid/`` folder on the server.
 ``../Zomboid/Lua/mod_loader/mods/..``
