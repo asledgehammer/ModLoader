@@ -1,13 +1,28 @@
 (function()
-  local loadFileAsString=function(b)local c=getFileReader(b,false)if c==nil then return nil end;local d=c:readLine()local e=''while d~=nil do if string.len(e)~=0 then e=e+'\n'end;e=e+d;d=c:readLine()end;c:close()return e end;local f='mod_loader/mods/mod_loader/client/client.lua'local b=a(f)if b==nil then print('ModLoader: File not found: '..f)return end
-
+  local loadFileAsString = function(c)
+    local e = getFileReader(c, false)
+    if e == nil then return nil end
+     local d = e:readLine()
+     local f = ''
+     while d ~= nil do
+        if string.len(f) ~= 0 then
+            f = f .. '\n'
+        end
+        f = f .. d
+        d = e:readLine()
+    end
+    e:close()
+    return f 
+  end
+  local b = loadFileAsString('mod_loader/mods/mod_loader/client/client.lua')
   -- Human Code --
   Events.OnClientCommand.Add(function(c_mod_id, command, player, args)
+    print('onClientCommand(mod_id='..tostring(c_mod_id)..', command='..tostring(command)..', player='..tostring(player)..', args='..tostring(args)..')')
     if c_mod_id ~= 'mod_loader' then return end
-    
+
     -- Send the main client-side code. 
-    if command == 'request_modloader_client_code' then 
-      sendServerCommand(player, 'mod_loader', 'receive_modloader_client_code', {code = b})
+    if command == 'request_mod_loader_client_code' then 
+      sendServerCommand(player, 'mod_loader', 'receive_mod_loader_client_code', {code = b})
     -- Handle request for a mod's code.
     elseif command == 'request_mod_code' then
       local mod_id = args.mod_id
@@ -30,7 +45,7 @@
       local found_one_file = false
       local file_data = {}
       -- Grab code from: ../Zomboid/Lua/ModLoader/{mod_id}/{file}
-      local folder = 'ModLoader/'..mod_id..'/'
+      local folder = 'mod_loader/mods/'..mod_id..'/'
       for i = 1, #files, 1 do
         local path = files[i]
         file_data[path] = loadFileAsString(folder..path)
@@ -45,4 +60,8 @@
       print('ModLoader: Unknown command: '..tostring(command))
     end       
   end)
+
+  _G['MOD_LOADER_READY'] = true
+  triggerEvent('OnModLoaderReady', true)
+  print('ModLoader: Server fully initialized.')
 end)()
