@@ -109,7 +109,7 @@ local function onRequestServerFile(player, module, path, cache)
         return;
     end
 
-    local uri = 'mod_loader/mods/' .. module .. '/' .. path;
+    local uri = 'ModLoader/mods/' .. module .. '/' .. path;
     local data = readFile(uri);
 
     -- A nil reader indicates a bad path or a missing file.
@@ -196,7 +196,7 @@ function ModLoader.requestServerFile(module, path, cache, callback)
         end);
 
     elseif IS_SERVER then
-        local uri = 'mod_loader/mods/' .. module .. '/' .. path;
+        local uri = 'ModLoader/mods/' .. module .. '/' .. path;
 
         -- If the file is requested cached and is in the cache, grab it & send it.
         if cache and cacheExists(module, path) then

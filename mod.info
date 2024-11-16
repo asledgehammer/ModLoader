@@ -1,6 +1,6 @@
-name=Asledgehammer - ModLoader
+name=ModLoader
 poster=./poster.png
-description=arf
-id=asledgehammer_modloader
-url=https://github.com/asledgehammer/Asledgehammer-ModLoader
+description=TODO: Document.
+id=modloader
+url=https://github.com/asledgehammer/ModLoader
 require=asledgehammer_utilities
