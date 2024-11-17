@@ -9,48 +9,11 @@ can act as a deterant for code being digested and countered by various hacks mad
 the Steam Workshop can put your mod at risk for theft. Sending over portions of the code from the server can add 
 security where the code could otherwise not work if not served on another server attempting to use your mod.
 
-## Basic Example
-### Basic_Example.lua
-```lua
--- Import the library as a module.
-local ModLoader = require 'asledgehammer/modloader/ModLoader';
-
--- (To keep all prints clean and contextual)
-local info = function(msg)
-    print('[' .. module .. '] :: ' .. msg);
-end
-
---- @param result 0 | 1 
-        - ModLoader.RESULT_FILE_NOT_FOUND
-        - ModLoader.RESULT_SUCCESS
---- @param data string | nil The data retrieved from the server.
-local callback = function(result, data)
-    
-    -- Handle non-installed / missing result.
-    if result == ModLoader.RESULT_FILE_NOT_FOUND then
-        info('File not installed on server. Ignoring..');
-        return;
-    end
-
-    -- Handle data here. (Example is Lua code)
-    loadstring(data)();
-
-end;
-
---- @type boolean
---- 
---- If true, the server will cache the file so when
---- called again it'll be ready.
-local cache = true; 
-
--- Request the file:
---   ~/Zomboid/Lua/ModLoader/mods/FoobarExample/Foobar_Client.lua
-ModLoader:requestServerFile('FoobarExample', 'Foobar_Client.lua', cache, cache);
-```
-
 ## File Caching & Encryption
 Additionally, ModLoader provides a template for sending code over encrypted. If you load your files and cache them, code
 can be encrypted in a way where only handled by the client-side receiving the code.
+
+Check the [Wiki](https://github.com/asledgehammer/ModLoader/wiki/) for examples!
 
 # Support
 
