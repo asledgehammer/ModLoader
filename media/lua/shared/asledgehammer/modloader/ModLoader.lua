@@ -9,7 +9,6 @@
 --- @alias ModLoaderWhitelist table<string, string>
 
 local Packet = require 'asledgehammer/network/Packet';
-local ZedUtils = require 'asledgehammer/util/ZedUtils';
 
 local IS_CLIENT = isClient();
 local IS_SERVER = isServer();
@@ -110,7 +109,6 @@ end
 ---
 --- @return void
 local function onRequestServerFile(player, module, id)
-
     local idRequested = id;
 
     local uri = 'ModLoader/mods/' .. module .. '/';
@@ -128,7 +126,6 @@ local function onRequestServerFile(player, module, id)
     end
 
     if whitelist then
-
         id = whitelist[id];
         if not id then
             local packet = Packet(ModLoader.MODULE_ID, 'request_server_file', {
@@ -225,9 +222,7 @@ function ModLoader.requestServerFile(module, id, callback)
         });
 
         packet:encrypt(ModLoader.SIMPLE_KEY, function() packet:sendToServer() end);
-
     elseif IS_SERVER then
-
         local uri = 'ModLoader/mods/' .. module .. '/' .. id;
         local result;
         -- If the file is requested cached and is in the cache, grab it & send it.
@@ -264,7 +259,6 @@ function ModLoader.requestServerFile(module, id, callback)
 end
 
 Events.OnClientCommand.Add(function(module, command, player, data)
-
     -- ZedUtils.printLuaCommand(module, command, nil, data);
 
     if module ~= ModLoader.MODULE_ID then return end
@@ -279,7 +273,6 @@ Events.OnClientCommand.Add(function(module, command, player, data)
 end);
 
 Events.OnServerCommand.Add(function(module, command, data)
-
     -- ZedUtils.printLuaCommand(module, command, nil, data);
 
     if module ~= ModLoader.MODULE_ID then return end
