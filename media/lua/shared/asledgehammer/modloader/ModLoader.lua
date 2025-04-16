@@ -9,6 +9,7 @@
 --- @alias ModLoaderWhitelist table<string, string>
 
 local Packet = require 'asledgehammer/network/Packet';
+local LuaNetworkEvents = require 'asledgehammer/network/LuaNetworkEvents';
 
 local IS_CLIENT = isClient();
 local IS_SERVER = isServer();
@@ -109,6 +110,7 @@ end
 ---
 --- @return void
 local function onRequestServerFile(player, module, id)
+
     local idRequested = id;
 
     local uri = 'ModLoader/mods/' .. module .. '/';
@@ -126,6 +128,7 @@ local function onRequestServerFile(player, module, id)
     end
 
     if whitelist then
+
         id = whitelist[id];
         if not id then
             local packet = Packet(ModLoader.MODULE_ID, 'request_server_file', {
@@ -222,7 +225,9 @@ function ModLoader.requestServerFile(module, id, callback)
         });
 
         packet:encrypt(ModLoader.SIMPLE_KEY, function() packet:sendToServer() end);
+
     elseif IS_SERVER then
+
         local uri = 'ModLoader/mods/' .. module .. '/' .. id;
         local result;
         -- If the file is requested cached and is in the cache, grab it & send it.
@@ -258,8 +263,7 @@ function ModLoader.requestServerFile(module, id, callback)
     end
 end
 
-Events.OnClientCommand.Add(function(module, command, player, data)
-    -- ZedUtils.printLuaCommand(module, command, nil, data);
+LuaNetworkEvents.addClientListener(function(module, command, player, data)
 
     if module ~= ModLoader.MODULE_ID then return end
 
@@ -272,14 +276,12 @@ Events.OnClientCommand.Add(function(module, command, player, data)
     end);
 end);
 
-Events.OnServerCommand.Add(function(module, command, data)
-    -- ZedUtils.printLuaCommand(module, command, nil, data);
+LuaNetworkEvents.addServerListener(function(module, command, data)
 
     if module ~= ModLoader.MODULE_ID then return end
 
     local packet = Packet(module, command, data);
     packet:decrypt(ModLoader.SIMPLE_KEY, function()
-        -- print(packet:toJSON());
         if packet.command == 'request_server_file' then
             local id = packet.data.id;
             local result = packet.data.result;
