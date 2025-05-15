@@ -1,7 +1,7 @@
 ---[[
 --- ModLoader - Client Script.
 ---
---- @author asledgehammer, JabDoesThings, 2024
+--- @author asledgehammer, JabDoesThings, 2025
 --]]
 
 --- @alias FileRequestCallback fun(result: 0 | 1, data: string | nil): string | void
@@ -10,12 +10,30 @@
 
 local Packet = require 'asledgehammer/network/Packet';
 local LuaNetworkEvents = require 'asledgehammer/network/LuaNetworkEvents';
+local ANSIPrinter = require 'asledgehammer/util/ANSIPrinter';
+local FileUtils = require 'asledgehammer/util/FileUtils';
 
 local IS_CLIENT = isClient();
 local IS_SERVER = isServer();
 
 -- This library is only used for multiplayer sessions.
 if not IS_CLIENT and not IS_SERVER then return end
+
+local isFatal = false;
+local mod = 'ModLoader';
+local printer = ANSIPrinter:new(mod);
+local info = function(message, ...) printer:info(message, ...) end
+local success = function(message, ...) printer:success(message, ...) end
+local warn = function(message, ...) printer:warn(message, ...) end
+local error = function(message, ...) printer:error(message, ...) end
+local fatal = function(message, ...)
+    isFatal = true;
+    printer:fatal(message, ...);
+end
+
+local function printFatalMessage()
+    fatal('%s failed to load. It is not running..', mod);
+end
 
 --- @type table<string, string>
 local CLIENT_CACHED_FILES = {};
@@ -25,10 +43,6 @@ local CACHED_WHITELISTS = {};
 
 --- @type table<string, table<string, FileRequestCallback>>
 local CALLBACKS = {};
-
-local info = function(message)
-    print('[ModLoader] :: ' .. tostring(message));
-end
 
 local ModLoader = {
     --- The ID used to communicate with the client and server.
@@ -79,48 +93,22 @@ local function cacheFile(module, id, data)
     CLIENT_CACHED_FILES[name] = data;
 end
 
---- @param uri string
----
---- @return string | nil
-local function readFile(uri)
-    local reader = getFileReader(uri, false);
-
-    -- A nil reader indicates a bad path or a missing file.
-    if not reader then
-        return nil;
-    end
-
-    ---------------------------------
-    -- Read the contents of the file.
-    local data = '';
-    local line = reader:readLine();
-    while line ~= nil do
-        data = data .. line .. '\n';
-        line = reader:readLine();
-    end
-    reader:close();
-    ---------------------------------
-
-    return data;
-end
-
 --- @param player IsoPlayer
 --- @param module string
 --- @param id string
 ---
 --- @return void
 local function onRequestServerFile(player, module, id)
-
     local idRequested = id;
 
-    local uri = 'ModLoader/mods/' .. module .. '/';
+    local uri = string.format('ModLoader/mods/%s/', module);
 
     --- @type ModLoaderWhitelist | nil
     local whitelist;
     if CACHED_WHITELISTS[uri] then
         whitelist = CACHED_WHITELISTS[uri];
     else
-        local data = readFile(uri .. 'whitelist.lua');
+        local data = FileUtils.readFile(uri .. 'whitelist.lua');
         if data then
             whitelist = loadstring(data)();
             CACHED_WHITELISTS[uri] = whitelist;
@@ -128,7 +116,6 @@ local function onRequestServerFile(player, module, id)
     end
 
     if whitelist then
-
         id = whitelist[id];
         if not id then
             local packet = Packet(ModLoader.MODULE_ID, 'request_server_file', {
@@ -140,7 +127,7 @@ local function onRequestServerFile(player, module, id)
 
             packet:encrypt(ModLoader.SIMPLE_KEY, function() packet:sendToPlayer(player) end);
 
-            info("Requested item not found in whitelist: \"" .. id .. "\"");
+            warn('Requested item not found in whitelist: "%s"', id);
 
             return;
         end
@@ -159,7 +146,7 @@ local function onRequestServerFile(player, module, id)
         return;
     end
 
-    local data = readFile(uri .. id);
+    local data = FileUtils.readFile(uri .. id);
 
     -- A nil reader indicates a bad path or a missing file.
     if not data then
@@ -170,7 +157,7 @@ local function onRequestServerFile(player, module, id)
             result = ModLoader.RESULT_FILE_NOT_FOUND
         });
         packet:encrypt(ModLoader.SIMPLE_KEY, function() packet:sendToPlayer(player) end);
-        info('File not found: ' .. uri);
+        warn('File not found: %s', uri);
         return;
     end
 
@@ -225,30 +212,28 @@ function ModLoader.requestServerFile(module, id, callback)
         });
 
         packet:encrypt(ModLoader.SIMPLE_KEY, function() packet:sendToServer() end);
-
     elseif IS_SERVER then
-
-        local uri = 'ModLoader/mods/' .. module .. '/' .. id;
+        local uri = string.format('ModLoader/mods/%s/%s', module, id);
         local result;
         -- If the file is requested cached and is in the cache, grab it & send it.
         if cacheExists(module, id) then
             local data = getCachedFile(module, id);
             result = callback(ModLoader.RESULT_SUCCESS, data);
             if result then
-                info('Caching file: ' .. id);
+                info('Caching file: %s', id);
                 cacheFile(module, id, result);
             end
             return;
         end
 
-        local file = readFile(uri);
+        local file = FileUtils.readFile(uri);
 
         -- A nil reader indicates a bad path or a missing file.
         if not file then
             pcall(function()
                 result = callback(ModLoader.RESULT_FILE_NOT_FOUND, nil);
                 if result then
-                    info('Caching file: ' .. id);
+                    info('Caching file: %s', id);
                     cacheFile(module, id, result);
                 end
             end);
@@ -257,14 +242,13 @@ function ModLoader.requestServerFile(module, id, callback)
 
         result = callback(ModLoader.RESULT_SUCCESS, file);
         if result then
-            info('Caching file: ' .. id);
+            info('Caching file: %s', id);
             cacheFile(module, id, result);
         end
     end
 end
 
 LuaNetworkEvents.addClientListener(function(module, command, player, data)
-
     if module ~= ModLoader.MODULE_ID then return end
 
     local packet = Packet(module, command, data);
@@ -277,7 +261,6 @@ LuaNetworkEvents.addClientListener(function(module, command, player, data)
 end);
 
 LuaNetworkEvents.addServerListener(function(module, command, data)
-
     if module ~= ModLoader.MODULE_ID then return end
 
     local packet = Packet(module, command, data);
